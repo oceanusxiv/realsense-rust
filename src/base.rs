@@ -22,7 +22,6 @@ where
     {
         use std::os::unix::ffi::OsStrExt;
         buf.extend(path.as_ref().as_os_str().as_bytes());
-        buf.push(0);
     };
 
     #[cfg(windows)]
