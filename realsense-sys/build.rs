@@ -12,6 +12,7 @@
 use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::ffi::OsStr;
 
 const REPOSITORY: &str = "https://github.com/IntelRealSense/librealsense.git";
 const TAG: &str = "v2.54.1";
@@ -148,7 +149,11 @@ fn main() {
 
     // link the libraries specified by pkg-config.
     for dir in &library.link_paths {
-        println!("cargo:rustc-link-search=native={}", dir.to_str().unwrap());
+        if cfg!(target_os = "macos") && dir.file_name() == Some(OsStr::new("x86_64-linux-gnu")) {
+            println!("cargo:rustc-link-search=native={}", dir.parent().unwrap().to_str().unwrap());
+        } else {
+            println!("cargo:rustc-link-search=native={}", dir.to_str().unwrap());
+        }
     }
     for lib in &library.libs {
         println!("cargo:rustc-link-lib={}", lib);
