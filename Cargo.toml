@@ -28,6 +28,9 @@ buildtime-bindgen = ["realsense-sys/buildtime-bindgen"]
 test-single-device = []
 # Only build docs, don't link to anything
 docs-only = ["realsense-sys/docs-only"]
+# - Build the librealsense2 library from source. This flag is passed to the realsense-sys
+#   Cargo.toml.
+build-from-source = ["realsense-sys/build-from-source"]
 
 [dependencies]
 anyhow = "1.0"

@@ -24,6 +24,8 @@ default = []
 #   feature is recommended if you're not on the latest version of the RealSense
 #   driver.
 buildtime-bindgen = ["bindgen"]
+# Build the librealsense2 library from source.
+build-from-source = []
 # Only build docs, don't link to anything
 docs-only = []
 
@@ -33,6 +35,7 @@ docs-only = []
 [build-dependencies]
 bindgen = { version = "0.57", optional = true }
 pkg-config = { version = "0.3" }
+cmake = "0.1"
 
 [package.metadata.docs.rs]
 no-default-features = true

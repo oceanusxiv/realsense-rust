@@ -9,10 +9,58 @@
 //!
 //! NOTE: If we build in "docs-only" mode (the feature), then this script does nothing, since we
 //! don't need to link to librealsense2 or regenerate bindings to build the docs.
+use std::env;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+const REPOSITORY: &str = "https://github.com/IntelRealSense/librealsense.git";
+const TAG: &str = "v2.54.1";
+
+macro_rules! ok(($expression:expr) => ($expression.unwrap()));
+macro_rules! get(($name:expr) => (ok!(env::var($name))));
 
 fn main() {
     if cfg!(feature = "docs-only") {
         return;
+    }
+
+    if cfg!(feature = "build-from-source") || pkg_config::probe_library("realsense2").is_err() {
+        let source = PathBuf::from(&get!("CARGO_MANIFEST_DIR"))
+            .join(format!("target/librealsense-source-{}", TAG));
+        if !Path::new(&source.join(".git")).exists() {
+            Command::new("git")
+                .args([
+                    "clone",
+                    &format!("--branch={}", TAG),
+                    "--depth=1",
+                    REPOSITORY,
+                    source.to_str().unwrap(),
+                ])
+                .output()
+                .unwrap();
+        }
+
+        let output = PathBuf::from(&get!("OUT_DIR"));
+        let pkg_config_dir = output.join("lib").join("pkgconfig");
+        let pkg_config_file = pkg_config_dir.join("realsense2.pc");
+        if pkg_config_file.exists() {
+            println!("{:?} already exist, not building.", pkg_config_file);
+        } else {
+            let mut config = cmake::Config::new(source.to_str().unwrap());
+            config
+                .define("CMAKE_CONFIGURATION_TYPES", "Release")
+                .define("BUILD_EXAMPLES", "0")
+                .define("BUILD_GRAPHICAL_EXAMPLES", "0")
+                .define("BUILD_TOOLS", "0")
+                .define("BUILD_GLSL_EXTENSIONS", "0")
+                .define("IMPORT_DEPTH_CAM_FW", "0");
+            if cfg!(target_os = "macos") {
+                config.generator("Xcode");
+            }
+            config.build();
+        }
+
+        env::set_var("PKG_CONFIG_PATH", pkg_config_dir.to_str().unwrap());
     }
 
     // Probe libary
