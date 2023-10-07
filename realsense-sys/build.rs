@@ -149,6 +149,7 @@ fn main() {
 
     // link the libraries specified by pkg-config.
     for dir in &library.link_paths {
+        // The pkg-config for librealsense2 is not configured correctly for macos.
         if cfg!(target_os = "macos") && dir.file_name() == Some(OsStr::new("x86_64-linux-gnu")) {
             println!("cargo:rustc-link-search=native={}", dir.parent().unwrap().to_str().unwrap());
         } else {
